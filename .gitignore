@@ -1,0 +1,3 @@
+*.o
+server/bomberman_server
+client/bomberman
