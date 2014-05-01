@@ -1,26 +1,30 @@
 #include "client.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "../shared/debug.h"
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-Client::Client(int socket_fd, sockaddr_in *sock_addr, socklen_t sock_addr_len)
-  : socket_fd(socket_fd), sock_addr_len(sock_addr_len)
+Client::Client(sockaddr_in *sock_addr, socklen_t sock_addr_len)
+  : sock_addr(sock_addr), sock_addr_len(sock_addr_len)
 {
-  this->sock_addr = new sockaddr_in;
-  memcpy(this->sock_addr, sock_addr, sock_addr_len);
 }
 
 Client::~Client()
 {
 }
 
-void Client::write(char* msg, size_t msg_len)
+void Client::async_write(char *msg, int msg_len, Utils::WriteThread *write_thread)
 {
-  sendto(socket_fd, msg, msg_len, 0, (struct sockaddr*) sock_addr, sock_addr_len);
+  char* msg_copy = new char[msg_len];
+  strncpy(msg_copy, msg, msg_len);
+  Utils::WriteJobParams job = {msg_copy, msg_len, sock_addr, sock_addr_len};
+
+  std::unique_lock<std::mutex> locker(*write_thread->write_queue_mutex);
+  write_thread->write_queue->push(job);
+  write_thread->cv_write_queue->notify_one();
 }
