@@ -71,8 +71,13 @@ namespace GameObjects
 
   void Bomb::free()
   {
-    map->remove_bomb(get_object_id());
-    // delete this;
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    event.user.code = SDL_USER_REMOVE_BOMB;
+    unsigned char *data = new unsigned char;
+    *data = get_object_id();
+    event.user.data1 = data;
+    SDL_PushEvent(&event);
   }
 
   Uint32 Bomb::animate_timer_callback(Uint32 interval, void* params)

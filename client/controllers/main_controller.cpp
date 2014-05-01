@@ -86,6 +86,14 @@ void MainController::process_sdl_event(SDL_Event& event)
         client->send_place_bomb(previous_location);
       }
       break;
+    case SDL_USEREVENT:
+      if (event.user.code == SDL_USER_REMOVE_BOMB)
+      {
+        unsigned char *bomb_id = (unsigned char*) event.user.data1;
+        map->remove_bomb(*bomb_id);
+        delete bomb_id;
+      }
+      break;
   }
 }
 
