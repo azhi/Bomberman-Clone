@@ -7,13 +7,21 @@
 
 namespace GameObjects
 {
+  struct ExplodeResults
+  {
+    char* field_xys;
+    char field_xys_count;
+    char* player_ids;
+    char player_ids_count;
+  };
+
   class Bomb : public GameObject
   {
     public:
       Bomb(char object_id, Map* map, Character* character, int initial_x, int initial_y);
       virtual ~Bomb();
 
-      void explode();
+      ExplodeResults explode();
 
       int get_x(){ return x; };
       int get_y(){ return y; };

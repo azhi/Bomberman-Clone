@@ -31,9 +31,13 @@ class Server
 
     void send_full_state();
     void send_create_character(char object_id, char x, char y, char last_move);
-    void send_destruct_cell(char x, char y);
+    void send_delete_character(char object_id);
+    void send_move_character(char object_id, char x, char y, char last_move);
+    void send_kill_character(char *object_ids, int object_count);
+    void send_place_bomb(char object_id, char x, char y);
+    void send_destruct_cell(char *xys, int xys_length);
 
-    void send_to_all_clients(char* msg, size_t msg_len);
+    void send_to_all_clients(char* msg, size_t msg_len, bool force_full_state = false);
 
     void add_client(Client* client);
     void remove_client(char object_id);

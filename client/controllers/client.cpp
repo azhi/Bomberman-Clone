@@ -5,6 +5,7 @@
 #include "../../shared/messages/server.h"
 #include "../../shared/character_move_directions.h"
 #include "../game_objects/character.h"
+#include "../game_objects/bomb.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -50,7 +51,7 @@ void Client::read_and_process()
   int select_ret = wait_for_socket(&tv);
   if (select_ret > 0)
   {
-    int recsize = recvfrom(socket_fd, buf, BUF_SIZE, 0, (sockaddr*) &sock_addr, &address_len);
+    recsize = recvfrom(socket_fd, buf, BUF_SIZE, 0, (sockaddr*) &sock_addr, &address_len);
     D(std::cerr << "RECEIVED: " << (int) buf[0] << std::endl);
     process_single_msg();
   }
@@ -95,7 +96,7 @@ void Client::send_character_move(char move_direction)
 void Client::send_place_bomb(bool previous_location)
 {
   char msg[2];
-  msg[0] = PLACE_BOMB_CMD;
+  msg[0] = CL_PLACE_BOMB_CMD;
   if (previous_location)
     msg[0] |= 0x01;
   msg[1] = '\0';
@@ -121,6 +122,21 @@ void Client::process_single_msg()
       break;
     case CREATE_CHARACTER_CMD:
       process_add_character(false);
+      break;
+    case DELETE_CHARACTER_CMD:
+      process_delete_character();
+      break;
+    case MOVE_CHARACTER_CMD:
+      process_move_character();
+      break;
+    case KILL_CHARACTER_CMD:
+      process_kill_character();
+      break;
+    case PLACE_BOMB_CMD:
+      process_place_bomb();
+      break;
+    case DESTRUCT_CELL_CMD:
+      process_destruct_cell();
       break;
   }
 }
@@ -148,6 +164,55 @@ void Client::process_add_character(bool main_character)
 
   if (main_character)
     map->set_main_character(character);
+}
+
+void Client::process_delete_character()
+{
+  char object_id = buf[1];
+  map->remove_character(object_id);
+}
+
+void Client::process_move_character()
+{
+  char object_id = buf[1];
+  char x = buf[2];
+  char y = buf[3];
+  char last_move = buf[4];
+
+  GameObjects::Character *character = map->find_character(object_id);
+  if (character)
+    character->set_move(x, y, last_move);
+}
+
+void Client::process_kill_character()
+{
+  for(int i = 0; i < recsize - 2; i++)
+  {
+    char object_id = buf[i+1];
+    GameObjects::Character *character = map->find_character(object_id);
+    if (character)
+      character->kill();
+  }
+}
+
+void Client::process_place_bomb()
+{
+  char object_id = buf[1];
+  char x = buf[2];
+  char y = buf[3];
+
+  GameObjects::Bomb *bomb = new GameObjects::Bomb(sdl_wrapper, map, object_id, x, y);
+  map->add_bomb(bomb);
+}
+
+void Client::process_destruct_cell()
+{
+  for(int i = 0; i < (recsize - 2) / 2; i++)
+  {
+    char x = buf[i * 2 + 1];
+    char y = buf[i * 2 + 2];
+    map->destruct_field(x, y);
+  }
 }
 
 void Client::init_socket()

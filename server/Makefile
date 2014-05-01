@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-O0 -ggdb -DDEBUG -c -std=c++11
-# CFLAGS=-O2 -c -std=c++11
+# CFLAGS=-O0 -ggdb -DDEBUG -c -std=c++11
+CFLAGS=-O2 -c -std=c++11
 LDFLAGS=-lpthread
 CPP_SOURCES=$(wildcard *.cpp game_objects/*.cpp utils/*.cpp)
 OBJECTS=$(CPP_SOURCES:.cpp=.o)

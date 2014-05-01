@@ -49,7 +49,7 @@ void Server::process()
       process_queue->pop();
       locker.unlock();
       process_single_msg(picked_job.buf, picked_job.buf_len, picked_job.sock_addr, picked_job.address_len);
-      send_full_state();
+      // send_full_state();
       locker.lock();
     }
   }
@@ -62,7 +62,7 @@ void Server::process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_add
   {
     case REGISTER_CMD:
     {
-      Client* client = new Client(sock_addr, address_len);
+      Client* client = new Client(game_logic, write_thread, sock_addr, address_len);
       add_client(client);
       game_logic->register_new_character(client);
       break;
@@ -74,7 +74,7 @@ void Server::process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_add
       game_logic->move_character(client->get_character_object_id(), direction);
       break;
     }
-    case PLACE_BOMB_CMD:
+    case CL_PLACE_BOMB_CMD:
     {
       Client* client = find_client_by_sockaddr(sock_addr);
       char previous_location = buf[0] & 0x0F;
@@ -93,9 +93,7 @@ void Server::process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_add
 
 void Server::send_full_state()
 {
-  char* current_state = game_logic->get_current_full_state();
-  send_to_all_clients(current_state, strlen(current_state) + 1);
-  delete[] current_state;
+  send_to_all_clients(NULL, 0, true);
 }
 
 void Server::send_create_character(char object_id, char x, char y, char last_move)
@@ -110,22 +108,64 @@ void Server::send_create_character(char object_id, char x, char y, char last_mov
   send_to_all_clients(res, 6);
 }
 
-void Server::send_destruct_cell(char x, char y)
+void Server::send_delete_character(char object_id)
 {
-  char res[4];
-  res[0] = DESTRUCT_CELL_CMD;
-  res[1] = x;
-  res[2] = y;
-  res[3] = '\0';
-  send_to_all_clients(res, 4);
+  char res[3];
+  res[0] = DELETE_CHARACTER_CMD;
+  res[1] = object_id;
+  res[2] = '\0';
+  send_to_all_clients(res, 3);
 }
 
-void Server::send_to_all_clients(char* msg, size_t msg_len)
+void Server::send_move_character(char object_id, char x, char y, char last_move)
+{
+  char res[6];
+  res[0] = MOVE_CHARACTER_CMD;
+  res[1] = object_id;
+  res[2] = x;
+  res[3] = y;
+  res[4] = last_move;
+  res[5] = '\0';
+  send_to_all_clients(res, 6);
+}
+
+void Server::send_kill_character(char *object_ids, int object_count)
+{
+  char res[object_count + 2];
+  res[0] = KILL_CHARACTER_CMD;
+  for(int i = 0; i < object_count; i++)
+    res[i+1] = object_ids[i];
+  res[object_count + 1] = '\0';
+  send_to_all_clients(res, object_count + 2);
+}
+
+void Server::send_place_bomb(char object_id, char x, char y)
+{
+  char res[5];
+  res[0] = PLACE_BOMB_CMD;
+  res[1] = object_id;
+  res[2] = x;
+  res[3] = y;
+  res[4] = '\0';
+  send_to_all_clients(res, 5);
+}
+
+void Server::send_destruct_cell(char* xys, int xys_length)
+{
+  char res[xys_length + 2];
+  res[0] = DESTRUCT_CELL_CMD;
+  for(int i = 0; i < xys_length; i++)
+    res[i+1] = xys[i];
+  res[xys_length + 1] = '\0';
+  send_to_all_clients(res, xys_length + 2);
+}
+
+void Server::send_to_all_clients(char* msg, size_t msg_len, bool force_full_state)
 {
   for(std::list<Client*>::iterator client = clients->begin();
       client != clients->end();
       client++)
-    (*client)->async_write(msg, msg_len, write_thread);
+    (*client)->async_write(msg, msg_len, force_full_state);
 }
 
 void Server::add_client(Client* client)

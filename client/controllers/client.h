@@ -29,12 +29,18 @@ class Client
     int wait_for_socket(timeval* tv);
 
     void process_add_character(bool main_character);
+    void process_delete_character();
+    void process_move_character();
+    void process_kill_character();
+    void process_place_bomb();
+    void process_destruct_cell();
 
     int socket_fd;
     fd_set rds;
     long ip;
     int port;
     char* buf;
+    int recsize;
 
     GameObjects::Map *map;
     SDLWrapper *sdl_wrapper;

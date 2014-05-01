@@ -33,6 +33,7 @@ namespace GameObjects
 
       short *get_surroundings(int x, int y);
       char get_field_type(int x, int y);
+      void destruct_field(int x, int y);
 
       void restore_from_binary_dump(char* dump);
 

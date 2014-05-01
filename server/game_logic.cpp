@@ -35,7 +35,10 @@ void GameLogic::move_character(char object_id, char direction)
 {
   GameObjects::Character *character = map->find_character(object_id);
   if (character && !character->is_killed())
+  {
     character->move(direction);
+    server->send_move_character(object_id, character->get_x(), character->get_y(), character->get_last_move());
+  }
 }
 
 void GameLogic::place_bomb(char object_id, char previous_location)
@@ -43,8 +46,8 @@ void GameLogic::place_bomb(char object_id, char previous_location)
   GameObjects::Character *character = map->find_character(object_id);
   if (character && !character->is_killed())
   {
-    int x = previous_location == 1 ? character->get_prev_x() : character->get_x();
-    int y = previous_location == 1 ? character->get_prev_y() : character->get_y();
+    char x = previous_location == 1 ? character->get_prev_x() : character->get_x();
+    char y = previous_location == 1 ? character->get_prev_y() : character->get_y();
     char element_type = map->get_element_type_on_coord(x, y);
     if ((element_type == GRASS_FIELD || element_type == CHARACTER) &&
         character->get_current_bombs_count() < MAX_BOMBS_COUNT)
@@ -53,6 +56,7 @@ void GameLogic::place_bomb(char object_id, char previous_location)
       BombExplodeCallbackParams* params = new BombExplodeCallbackParams(this, bomb);
       std::thread(bomb_explode_callback, params).detach();
       map->add_bomb(bomb);
+      server->send_place_bomb(bomb->get_object_id(), x, y);
     }
   }
 }
@@ -62,6 +66,7 @@ void GameLogic::unregister_character(Client* client)
   unsigned char char_id = client->get_character_object_id();
   map->remove_character(char_id);
   D(std::cerr << "CHAR LEAVING: " << (int) char_id << std::endl);
+  server->send_delete_character(char_id);
 }
 
 void GameLogic::bomb_explode_callback(void *params)
@@ -75,11 +80,20 @@ void GameLogic::bomb_explode_callback(void *params)
 
   if (!bomb->is_removed())
   {
-    bomb->explode();
+    GameObjects::ExplodeResults results = bomb->explode();
     game_logic->get_map()->remove_bomb(bomb->get_object_id());
-    if (!game_logic->is_restarting() && game_logic->get_map()->get_alive_characters_count() < 2)
-      game_logic->restart();
-    game_logic->get_server()->send_full_state();
+    if (!game_logic->is_restarting())
+    {
+      if (results.field_xys_count > 0)
+        game_logic->get_server()->send_destruct_cell(results.field_xys, results.field_xys_count);
+      if (results.player_ids_count > 0)
+        game_logic->get_server()->send_kill_character(results.player_ids, results.player_ids_count);
+      delete[] results.field_xys;
+      delete[] results.player_ids;
+
+      if (game_logic->get_map()->get_alive_characters_count() < 2)
+        game_logic->restart();
+    }
   }
   else
     delete bomb;
@@ -108,6 +122,7 @@ void GameLogic::restart()
     (*character)->respawn();
   }
   restarting = false;
+  server->send_full_state();
 }
 
 unsigned char GameLogic::next_bomb_object_id()

@@ -120,6 +120,12 @@ namespace GameObjects
     return field[x][y];
   }
 
+  void Map::destruct_field(int x, int y)
+  {
+    if (get_field_type(x, y) == DESTRUCTIBLE_FIELD)
+      field[x][y] = GRASS_FIELD;
+  }
+
   short Map::get_element_type_on_coord(int x, int y)
   {
     for(std::list<Character*>::iterator character = characters->begin();
@@ -171,7 +177,6 @@ namespace GameObjects
       unsigned char last_move = last_move_and_killed & 0x07;
       bool killed = (last_move_and_killed & 0x08) == 0x08;
 
-      D(std::cerr << "CHARACTER " << (int) object_id << " " << (int) x << " " << (int) y << " " << killed << std::endl);
       Character* character = find_character(object_id);
       if (character == NULL)
       {
