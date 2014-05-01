@@ -35,6 +35,7 @@ namespace GameObjects
       void add_bomb(Bomb* bomb);
       Bomb* find_bomb(char object_id);
       void remove_bomb(char object_id);
+      std::list<Bomb*>* get_bombs();
 
       short *get_surroundings(int x, int y);
       short get_element_type_on_coord(int x, int y);
@@ -42,7 +43,6 @@ namespace GameObjects
       Coord find_free_space();
 
       void destruct_field(int x, int y);
-
 
       char* dump_to_binary_string();
 

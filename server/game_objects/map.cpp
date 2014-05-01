@@ -91,6 +91,11 @@ namespace GameObjects
       }
   }
 
+  std::list<Bomb*>* Map::get_bombs()
+  {
+    return bombs;
+  }
+
   char Map::get_field_type(int x, int y)
   {
     return field[x][y];

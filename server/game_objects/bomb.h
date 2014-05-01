@@ -18,12 +18,16 @@ namespace GameObjects
       int get_x(){ return x; };
       int get_y(){ return y; };
 
+      void remove(){ removed = true; };
+      bool is_removed(){ return removed; };
+
     private:
       Map* map;
       Character* character;
 
       int x;
       int y;
+      bool removed = false;
   };
 }
 
