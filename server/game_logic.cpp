@@ -2,12 +2,13 @@
 
 #include "server.h"
 #include "../shared/character_move_directions.h"
+#include "../shared/debug.h"
 #include "game_objects/character.h"
 #include "game_objects/bomb.h"
 
 #include <chrono>
 #include <future>
-#include <cstdio>
+#include <iostream>
 
 GameLogic::GameLogic(Server* server) :
   server(server), current_bomb_object_id(0), current_player_object_id(0)
@@ -27,7 +28,7 @@ void GameLogic::register_new_character(Client* client)
   client->set_character_object_id(character->get_object_id());
   server->send_create_character(character->get_object_id(), character->get_x(),
                                 character->get_y(), character->get_last_move());
-  fprintf(stderr, "CREATED NEW CHAR %hhu\n", character->get_object_id());
+  D(std::cerr << "CREATED NEW CHAR " << (int) character->get_object_id() << std::endl);
 }
 
 void GameLogic::move_character(char object_id, char direction)

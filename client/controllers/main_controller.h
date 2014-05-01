@@ -8,13 +8,14 @@
 class MainController
 {
   public:
-    MainController();
+    MainController(char* ip_str);
     virtual ~MainController();
 
     void main_cycle();
 
   private:
     void process_sdl_event(SDL_Event &event);
+    long parse_str_ip(char* ip_str);
 
     SDLWrapper *sdl_wrapper;
 
@@ -22,6 +23,7 @@ class MainController
     Client *client;
 
     bool quit = false;
+    long server_ip = 0;
 };
 
 #endif

@@ -2,8 +2,9 @@
 #include "character.h"
 #include "bomb.h"
 #include "../sdl/texture_cache.h"
+#include "../../shared/debug.h"
 
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <vector>
 
@@ -163,24 +164,24 @@ namespace GameObjects
     char characters_count = dump[offset++];
     for(int i = 0; i < characters_count; i++)
     {
-      char object_id = dump[offset + 4 * i];
-      char x = dump[offset + 4 * i + 1];
-      char y = dump[offset + 4 * i + 2];
-      char last_move_and_killed = dump[offset + 4 * i + 3];
-      char last_move = last_move_and_killed & 0x07;
+      unsigned char object_id = dump[offset + 4 * i];
+      unsigned char x = dump[offset + 4 * i + 1];
+      unsigned char y = dump[offset + 4 * i + 2];
+      unsigned char last_move_and_killed = dump[offset + 4 * i + 3];
+      unsigned char last_move = last_move_and_killed & 0x07;
       bool killed = (last_move_and_killed & 0x08) == 0x08;
 
-      fprintf(stderr, "CHARACTER %hhu %hhu %hhu %hhu\n", object_id, x, y, killed);
+      D(std::cerr << "CHARACTER " << (int) object_id << " " << (int) x << " " << (int) y << " " << killed << std::endl);
       Character* character = find_character(object_id);
       if (character == NULL)
       {
-        fprintf(stderr, "ADDING CHARACTER %hhu\n", object_id);
+        D(std::cerr << "ADDING CHARACTER " << (int) object_id << std::endl);
         character = new Character(sdl_wrapper, this, object_id, x, y, CHARACTER_MOVE_DOWN, killed, false);
         add_character(character);
       }
       else
       {
-        fprintf(stderr, "MOVING CHARACTER %hhu\n", object_id);
+        D(std::cerr << "MOVING CHARACTER " << (int) object_id << std::endl);
         character->set_move(x, y, last_move);
         if (killed && !character->is_killed())
           character->kill();

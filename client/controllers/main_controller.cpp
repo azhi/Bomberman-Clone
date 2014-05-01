@@ -2,13 +2,16 @@
 #include "../game_objects/character.h"
 #include "../game_objects/bomb.h"
 #include "../sdl/texture_cache.h"
+#include "../../shared/debug.h"
 
 #include <string>
+#include <iostream>
 
-MainController::MainController()
+MainController::MainController(char* ip_str)
 {
   sdl_wrapper = new SDLWrapper("Bomberman");
   TextureCache::init(sdl_wrapper);
+  server_ip = parse_str_ip(ip_str);
 }
 
 MainController::~MainController()
@@ -21,7 +24,7 @@ MainController::~MainController()
 void MainController::main_cycle()
 {
   map = new GameObjects::Map(sdl_wrapper);
-  client = new Client(0x7F000001, 5555, map, sdl_wrapper);
+  client = new Client(server_ip, 5555, map, sdl_wrapper);
   client->do_register();
 
   SDL_Event event;
@@ -81,5 +84,24 @@ void MainController::process_sdl_event(SDL_Event& event)
       }
       break;
   }
+}
+
+long MainController::parse_str_ip(char* ip_str)
+{
+  int current_ip_str_pos = 0;
+  long res = 0;
+  for(int i = 3; i > -1; i--)
+  {
+    int current_buf_pos = 0;
+    char buf[4];
+    while (current_ip_str_pos < strlen(ip_str) && ip_str[current_ip_str_pos] != '.')
+      buf[current_buf_pos++] = ip_str[current_ip_str_pos++];
+    buf[current_buf_pos] = '\0';
+    current_ip_str_pos++;
+    int byte = atoi(buf);
+    res += byte << (i * 8);
+  }
+  D_VAR(res);
+  return res;
 }
 

@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -34,7 +34,7 @@ void Server::listen()
   fd_set rds;
   FD_ZERO(&rds);
   FD_SET(socket_fd, &rds);
-  fprintf(stderr, "STARTED LISTENING...\n");
+  std::cerr << "STARTED LISTENING..." << std::endl;
   while(true)
   {
     int select_ret = select(socket_fd + 1, &rds, NULL, NULL, NULL);
@@ -162,7 +162,7 @@ void Server::init_socket(int port)
 
   if ( socket_fd == -1 )
   {
-    fprintf(stderr, "Error creating socket\n");
+    std::cerr << "Error creating socket" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -175,7 +175,7 @@ void Server::init_socket(int port)
 
   if ( bind(socket_fd, (sockaddr*) &sock_addr, sizeof(sock_addr)) == -1 )
   {
-    fprintf(stderr, "Error binding socket\n");
+    std::cerr << "Error binding socket" << std::endl;
     close(socket_fd);
     exit(EXIT_FAILURE);
   }

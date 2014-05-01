@@ -1,5 +1,6 @@
 #include "client.h"
 
+#include "../../shared/debug.h"
 #include "../../shared/messages/client.h"
 #include "../../shared/messages/server.h"
 #include "../../shared/character_move_directions.h"
@@ -9,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -49,7 +50,7 @@ void Client::read_and_process()
   if (select_ret > 0)
   {
     int recsize = recvfrom(socket_fd, buf, BUF_SIZE, 0, (sockaddr*) &sock_addr, &address_len);
-    fprintf(stderr, "RECEIVED: %hhu\n", buf[0]);
+    D(std::cerr << "RECEIVED: " << (int) buf[0] << std::endl);
     process_single_msg();
   }
 }
@@ -66,7 +67,7 @@ void Client::do_register()
     char cmd = buf[0];
     if (cmd != CREATE_CHARACTER_CMD)
     {
-      fprintf(stderr, "Server answered not with CREATE_CHARACTER after registration. Terminating...");
+      std::cerr << "Server answered not with CREATE_CHARACTER after registration. Terminating..." << std::endl;
       exit(EXIT_FAILURE);
     }
     process_add_character(true);
@@ -145,7 +146,7 @@ void Client::init_socket()
 
   if ( socket_fd == -1 )
   {
-    fprintf(stderr, "Error creating socket\n");
+    std::cerr << "Error creating socket" << std::endl;
     exit(EXIT_FAILURE);
   }
 

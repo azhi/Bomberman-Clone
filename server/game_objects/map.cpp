@@ -2,8 +2,9 @@
 #include "character.h"
 #include "bomb.h"
 #include "../../shared/messages/server.h"
+#include "../../shared/debug.h"
 
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 
 namespace GameObjects
@@ -128,7 +129,7 @@ namespace GameObjects
   {
     char characters_size = characters->size();
     char bombs_size = bombs->size();
-    char* res = new char[(MAP_HEIGHT * MAP_WIDTH / 4 + 1) + characters_size * 4 + bombs_size * 3 + 3];
+    char* res = new char[(MAP_HEIGHT * MAP_WIDTH / 4 + 1) + characters_size * 4 + bombs_size * 4 + 4];
     int current_pos = 0;
     res[current_pos++] = FULL_STATE_DUMP_CMD;
     char _4fields = '\0';
@@ -178,7 +179,7 @@ namespace GameObjects
       res[current_pos++] = (*bomb)->get_y();
     }
 
-    res[current_pos++] = '\0';
+    res[current_pos] = '\0';
     return res;
   }
 
