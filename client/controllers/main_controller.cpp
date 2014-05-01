@@ -6,12 +6,15 @@
 
 #include <string>
 #include <iostream>
+#include <cstdlib>
 
-MainController::MainController(char* ip_str)
+MainController::MainController(char* ip_str, bool is_bot) : is_bot(is_bot)
 {
   sdl_wrapper = new SDLWrapper("Bomberman");
   TextureCache::init(sdl_wrapper);
   server_ip = parse_str_ip(ip_str);
+  if (is_bot)
+    SDL_AddTimer(CHARACTER_MOVE_ANIMATE_TIME + 50, push_random_sdl_event, NULL);
 }
 
 MainController::~MainController()
@@ -84,6 +87,38 @@ void MainController::process_sdl_event(SDL_Event& event)
       }
       break;
   }
+}
+
+Uint32 MainController::push_random_sdl_event(Uint32 interval, void* params)
+{
+  if (rand() % 10 < 9)
+  {
+    SDL_Event event;
+    event.type = SDL_KEYDOWN;
+    event.key.type = SDL_KEYDOWN;
+    event.key.state = SDL_PRESSED;
+    int rand1 = rand() % 4;
+    if (rand1 == 0)
+      event.key.keysym.sym = SDLK_DOWN;
+    else if (rand1 == 1)
+      event.key.keysym.sym = SDLK_UP;
+    else if (rand1 == 2)
+      event.key.keysym.sym = SDLK_LEFT;
+    else if (rand1 == 3)
+      event.key.keysym.sym = SDLK_RIGHT;
+    SDL_PushEvent(&event);
+
+    if (rand() % 100 < 5)
+    {
+      SDL_Event event;
+      event.type = SDL_KEYDOWN;
+      event.key.type = SDL_KEYDOWN;
+      event.key.state = SDL_PRESSED;
+      event.key.keysym.sym = SDLK_LCTRL;
+      SDL_PushEvent(&event);
+    }
+  }
+  return interval;
 }
 
 long MainController::parse_str_ip(char* ip_str)
