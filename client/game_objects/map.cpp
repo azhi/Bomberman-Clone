@@ -175,20 +175,24 @@ namespace GameObjects
       Character* character = find_character(object_id);
       if (character == NULL)
       {
-        D(std::cerr << "ADDING CHARACTER " << (int) object_id << std::endl);
         character = new Character(sdl_wrapper, this, object_id, x, y, CHARACTER_MOVE_DOWN, killed, false);
         add_character(character);
       }
       else
       {
-        D(std::cerr << "MOVING CHARACTER " << (int) object_id << std::endl);
         character->set_move(x, y, last_move);
         if (killed && !character->is_killed())
           character->kill();
         if (!killed && character->is_killed())
           character->respawn();
       }
+      character->set_mark();
     }
+    characters->remove_if(
+      [](Character* character){ return !character->is_marked(); }
+    );
+    for(auto character : *characters)
+      character->unset_mark();
 
     offset += 4 * characters_count;
     char bombs_count = dump[offset++];

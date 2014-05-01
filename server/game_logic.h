@@ -18,6 +18,7 @@ class GameLogic
     void register_new_character(Client* client);
     void move_character(char object_id, char direction);
     void place_bomb(char object_id, char previous_location);
+    void unregister_character(Client* client);
 
     void restart();
 

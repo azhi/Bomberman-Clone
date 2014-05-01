@@ -28,7 +28,7 @@ void GameLogic::register_new_character(Client* client)
   client->set_character_object_id(character->get_object_id());
   server->send_create_character(character->get_object_id(), character->get_x(),
                                 character->get_y(), character->get_last_move());
-  D(std::cerr << "CREATED NEW CHAR " << (int) character->get_object_id() << std::endl);
+  D(std::cerr << "NEW CHAR JOINING: " << (int) character->get_object_id() << std::endl);
 }
 
 void GameLogic::move_character(char object_id, char direction)
@@ -55,6 +55,13 @@ void GameLogic::place_bomb(char object_id, char previous_location)
       map->add_bomb(bomb);
     }
   }
+}
+
+void GameLogic::unregister_character(Client* client)
+{
+  unsigned char char_id = client->get_character_object_id();
+  map->remove_character(char_id);
+  D(std::cerr << "CHAR LEAVING: " << (int) char_id << std::endl);
 }
 
 void GameLogic::bomb_explode_callback(void *params)

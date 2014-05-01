@@ -30,6 +30,10 @@ namespace GameObjects
       void kill(){ killed = true; };
       void respawn(){ killed = false; };
 
+      void set_mark(){ marked = true; };
+      void unset_mark(){ marked = false; };
+      bool is_marked(){ return marked; };
+
       void set_screen_coord(int x, int y){ screen_x = x; screen_y = y; };
 
       void start_animate_move();
@@ -39,6 +43,7 @@ namespace GameObjects
 
     private:
       Map* map;
+      bool marked = false;
       bool is_main_character;
 
       int field_x;

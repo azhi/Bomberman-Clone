@@ -74,6 +74,13 @@ void Server::process_single_msg(sockaddr_in *sock_addr, socklen_t address_len)
       game_logic->place_bomb(client->get_character_object_id(), previous_location);
       break;
     }
+    case UNREGISTER_CMD:
+    {
+      Client* client = find_client_by_sockaddr(sock_addr);
+      game_logic->unregister_character(client);
+      remove_client(client->get_character_object_id());
+      break;
+    }
   }
 }
 

@@ -23,6 +23,7 @@ Client::Client(long ip, int port, GameObjects::Map *map, SDLWrapper *sdl_wrapper
 
 Client::~Client()
 {
+  send_unregister();
   close(socket_fd);
 }
 
@@ -97,6 +98,15 @@ void Client::send_place_bomb(bool previous_location)
   msg[0] = PLACE_BOMB_CMD;
   if (previous_location)
     msg[0] |= 0x01;
+  msg[1] = '\0';
+  write(msg);
+}
+
+void Client::send_unregister()
+{
+  D(std::cerr << "SENDING UNREG" << std::endl);
+  char msg[2];
+  msg[0] = UNREGISTER_CMD;
   msg[1] = '\0';
   write(msg);
 }

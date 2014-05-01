@@ -20,6 +20,7 @@ class Client
     void send_register();
     void send_character_move(char move_direction);
     void send_place_bomb(bool previous_location);
+    void send_unregister();
 
   private:
     void init_socket();

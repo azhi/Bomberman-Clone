@@ -13,4 +13,7 @@
 // xx - move direction (00, 01, 10, 11)
 #define MOVE_CMD 0xC0
 
+// UNREGISTER: 0b00100000
+#define UNREGISTER_CMD 0x20
+
 #endif
