@@ -57,13 +57,13 @@ namespace GameObjects
         bottom_aoe = 2;
     }
 
-    if (map->get_field_type(x - left_aoe - 1, y) == DESTRUCTIBLE_FIELD)
+    if (left_aoe != 2 && map->get_field_type(x - left_aoe - 1, y) == DESTRUCTIBLE_FIELD)
       map->destruct_field(x - left_aoe - 1, y);
-    if (map->get_field_type(x + right_aoe + 1, y) == DESTRUCTIBLE_FIELD)
+    if (right_aoe != 2 && map->get_field_type(x + right_aoe + 1, y) == DESTRUCTIBLE_FIELD)
       map->destruct_field(x + right_aoe + 1, y);
-    if (map->get_field_type(x, y - top_aoe - 1) == DESTRUCTIBLE_FIELD)
+    if (top_aoe != 2 && map->get_field_type(x, y - top_aoe - 1) == DESTRUCTIBLE_FIELD)
       map->destruct_field(x, y - top_aoe - 1);
-    if (map->get_field_type(x, y + bottom_aoe + 1) == DESTRUCTIBLE_FIELD)
+    if (bottom_aoe != 2 && map->get_field_type(x, y + bottom_aoe + 1) == DESTRUCTIBLE_FIELD)
       map->destruct_field(x, y + bottom_aoe + 1);
 
     std::list<Character*> *characters = map->get_characters();
