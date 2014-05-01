@@ -29,6 +29,8 @@ class GameLogic
     GameObjects::Map* get_map(){ return map; };
     Server* get_server(){ return server; };
 
+    bool is_restarting(){ return restarting; };
+
   private:
     unsigned char next_bomb_object_id();
     unsigned char next_player_object_id();
@@ -38,6 +40,8 @@ class GameLogic
     unsigned char current_bomb_object_id, current_player_object_id;
     GameObjects::Map *map;
     Server *server;
+
+    bool restarting = false;
 };
 
 struct BombExplodeCallbackParams

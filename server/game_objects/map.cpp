@@ -5,7 +5,7 @@
 #include "../../shared/debug.h"
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace GameObjects
 {
@@ -111,7 +111,13 @@ namespace GameObjects
       return Coord(1, MAP_HEIGHT - 2);
     if (get_element_type_on_coord(MAP_WIDTH - 2, 1) == GRASS_FIELD)
       return Coord(MAP_WIDTH - 2, 1);
-    return Coord(1, 1);
+    while(true)
+    {
+      int x = rand() % (MAP_WIDTH - 2);
+      int y = rand() % (MAP_HEIGHT - 2);
+      if (get_element_type_on_coord(x, y) == GRASS_FIELD)
+        return Coord(x, y);
+    }
   }
 
   // 4 element array - [down, up, left, right]
@@ -214,7 +220,7 @@ namespace GameObjects
             (i != MAP_HEIGHT - 2 || j != MAP_WIDTH - 3) &&
             (i != MAP_HEIGHT - 3 || j != MAP_WIDTH - 2))
         {
-          if (rand() % 10 < 7)
+          if (rand() % 10 < 5)
             chr = DESTRUCTIBLE_FIELD;
         }
         field[j][i] = chr;

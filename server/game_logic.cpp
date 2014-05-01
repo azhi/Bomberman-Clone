@@ -77,7 +77,7 @@ void GameLogic::bomb_explode_callback(void *params)
   {
     bomb->explode();
     game_logic->get_map()->remove_bomb(bomb->get_object_id());
-    if (game_logic->get_map()->get_alive_characters_count() < 2)
+    if (!game_logic->is_restarting() && game_logic->get_map()->get_alive_characters_count() < 2)
       game_logic->restart();
     game_logic->get_server()->send_full_state();
   }
@@ -92,6 +92,7 @@ char* GameLogic::get_current_full_state()
 
 void GameLogic::restart()
 {
+  restarting = true;
   std::this_thread::sleep_for(std::chrono::milliseconds(RESTART_DELAY));
   map->init_from_file(DEFAULT_MAP_PATH);
   for(auto bomb : *map->get_bombs())
@@ -106,6 +107,7 @@ void GameLogic::restart()
     (*character)->set_y(free_space.y);
     (*character)->respawn();
   }
+  restarting = false;
 }
 
 unsigned char GameLogic::next_bomb_object_id()

@@ -116,7 +116,7 @@ Uint32 MainController::push_random_sdl_event(Uint32 interval, void* params)
       event.key.keysym.sym = SDLK_RIGHT;
     SDL_PushEvent(&event);
 
-    if (rand() % 100 < 5)
+    if (rand() % 100 < 3)
     {
       SDL_Event event;
       event.type = SDL_KEYDOWN;
