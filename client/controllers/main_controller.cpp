@@ -7,9 +7,11 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <time.h>
 
 MainController::MainController(char* ip_str, bool is_bot) : is_bot(is_bot)
 {
+  srand(time(NULL));
   sdl_wrapper = new SDLWrapper("Bomberman");
   TextureCache::init(sdl_wrapper);
   server_ip = parse_str_ip(ip_str);
