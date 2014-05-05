@@ -1,7 +1,7 @@
 #include "client.h"
 
 #include "../shared/debug.h"
-#include "game_logic.h"
+#include "server.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -10,10 +10,15 @@
 #include <string.h>
 #include <unistd.h>
 
-Client::Client(GameLogic *game_logic, Utils::WriteThread *write_thread, sockaddr_in *sock_addr, socklen_t sock_addr_len)
-  : game_logic(game_logic), write_thread(write_thread),
-    sock_addr(sock_addr), sock_addr_len(sock_addr_len)
+Client::Client(Server *server, int port) : server(server), port(port), sock_addr(nullptr)
 {
+  game_logic = server->get_game_logic();
+  listen_thread = new Utils::ListenThread(this, port, server->process_queue, server->process_queue_mutex,
+                                          server->cv_process_queue);
+  write_thread = new Utils::WriteThread(listen_thread->get_socket_fd());
+
+  listen_thread->start();
+  write_thread->start();
 }
 
 Client::~Client()
@@ -57,11 +62,14 @@ void Client::send_full_state()
 
 void Client::do_async_write(char *msg, int msg_len)
 {
-  char* msg_copy = new char[msg_len];
-  strncpy(msg_copy, msg, msg_len);
-  Utils::WriteJobParams job = {msg_copy, msg_len, sock_addr, sock_addr_len};
+  if (sock_addr != nullptr)
+  {
+    char* msg_copy = new char[msg_len];
+    strncpy(msg_copy, msg, msg_len);
+    Utils::WriteJobParams job = {msg_copy, msg_len, sock_addr, sock_addr_len};
 
-  std::unique_lock<std::mutex> locker(*write_thread->write_queue_mutex);
-  write_thread->write_queue->push(job);
-  write_thread->cv_write_queue->notify_one();
+    std::unique_lock<std::mutex> locker(*write_thread->write_queue_mutex);
+    write_thread->write_queue->push(job);
+    write_thread->cv_write_queue->notify_one();
+  }
 }

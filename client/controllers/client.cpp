@@ -26,6 +26,7 @@ Client::~Client()
 {
   send_unregister();
   close(socket_fd);
+  delete[] buf;
 }
 
 void Client::write(char* cmd)
@@ -66,13 +67,25 @@ void Client::do_register()
   if (select_ret > 0)
   {
     int recsize = recvfrom(socket_fd, buf, BUF_SIZE, 0, (sockaddr*) &sock_addr, &address_len);
-    char cmd = buf[0];
-    if (cmd != CREATE_CHARACTER_CMD)
+    unsigned int new_port = ((unsigned char) buf[0] << 8) | (unsigned char) buf[1];
+    port = new_port;
+    close(socket_fd);
+    delete[] buf;
+    init_socket();
+    send_register();
+    select_ret = wait_for_socket(NULL);
+    if (select_ret > 0)
     {
-      std::cerr << "Server answered not with CREATE_CHARACTER after registration. Terminating..." << std::endl;
-      exit(EXIT_FAILURE);
+      int recsize = recvfrom(socket_fd, buf, BUF_SIZE, 0, (sockaddr*) &sock_addr, &address_len);
+      char cmd = buf[0];
+      if (cmd != CREATE_CHARACTER_CMD)
+      {
+        D(std::cerr << (int) cmd << std::endl);
+        std::cerr << "Server answered not with CREATE_CHARACTER after registration. Terminating..." << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      process_add_character(true);
     }
-    process_add_character(true);
   }
 }
 
@@ -226,7 +239,4 @@ void Client::init_socket()
   }
 
   buf = new char[BUF_SIZE];
-
-  FD_ZERO(&rds);
-  FD_SET(socket_fd, &rds);
 }

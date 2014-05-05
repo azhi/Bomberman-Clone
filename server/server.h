@@ -5,7 +5,7 @@
 
 #include "game_logic.h"
 #include "client.h"
-#include "utils/listen_thread.h"
+#include "utils/dispatcher_thread.h"
 
 #include <list>
 #include <queue>
@@ -17,8 +17,7 @@ struct ProcessJobParams
 {
   char *buf;
   int buf_len;
-  sockaddr_in *sock_addr;
-  socklen_t address_len;
+  Client *client;
 };
 
 class Server
@@ -26,6 +25,8 @@ class Server
   public:
     Server(int port);
     ~Server();
+
+    GameLogic *get_game_logic(){ return game_logic; };
 
     void process();
 
@@ -41,21 +42,18 @@ class Server
 
     void add_client(Client* client);
     void remove_client(char object_id);
-    Client* find_client_by_sockaddr(sockaddr_in *sockaddr);
-    Client* find_client_by_character_id(char character_object_id);
-
-  private:
-    void process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_addr, socklen_t address_len);
-
-    GameLogic *game_logic;
-    Utils::ListenThread *listen_thread;
-    Utils::WriteThread *write_thread;
-
-    std::list<Client*> *clients;
 
     std::queue<ProcessJobParams> *process_queue;
     std::mutex *process_queue_mutex;
     std::condition_variable *cv_process_queue;
+
+  private:
+    void process_single_msg(char* buf, size_t buf_len, Client *client);
+
+    GameLogic *game_logic;
+    Utils::DispatcherThread *dispatcher_thread;
+
+    std::list<Client*> *clients;
 };
 
 #endif

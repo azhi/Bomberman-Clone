@@ -6,6 +6,7 @@
 #include "../shared/character_move_directions.h"
 #include "game_objects/character.h"
 #include "game_objects/bomb.h"
+#include "utils/dispatcher_thread.h"
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -22,16 +23,14 @@ Server::Server(int port)
   process_queue_mutex = new std::mutex;
   cv_process_queue = new std::condition_variable;
   process_queue = new std::queue<ProcessJobParams>;
-  listen_thread = new Utils::ListenThread(port, process_queue, process_queue_mutex, cv_process_queue);
-  listen_thread->start();
 
-  write_thread = new Utils::WriteThread(listen_thread->get_socket_fd());
-  write_thread->start();
+  dispatcher_thread = new Utils::DispatcherThread(this, 5555);
+  dispatcher_thread->start();
 }
 
 Server::~Server()
 {
-  delete listen_thread;
+  delete dispatcher_thread;
 }
 
 void Server::process()
@@ -48,42 +47,36 @@ void Server::process()
       picked_job = process_queue->front();
       process_queue->pop();
       locker.unlock();
-      process_single_msg(picked_job.buf, picked_job.buf_len, picked_job.sock_addr, picked_job.address_len);
-      // send_full_state();
+      process_single_msg(picked_job.buf, picked_job.buf_len, picked_job.client);
       locker.lock();
     }
   }
 }
 
-void Server::process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_addr, socklen_t address_len)
+void Server::process_single_msg(char* buf, size_t buf_len, Client *client)
 {
   unsigned char cmd = buf[0] & 0xF8;
   switch(cmd)
   {
     case REGISTER_CMD:
     {
-      Client* client = new Client(game_logic, write_thread, sock_addr, address_len);
-      add_client(client);
       game_logic->register_new_character(client);
       break;
     }
     case MOVE_CMD:
     {
-      Client* client = find_client_by_sockaddr(sock_addr);
       char direction = buf[0] & 0x0F;
       game_logic->move_character(client->get_character_object_id(), direction);
       break;
     }
     case CL_PLACE_BOMB_CMD:
     {
-      Client* client = find_client_by_sockaddr(sock_addr);
       char previous_location = buf[0] & 0x0F;
       game_logic->place_bomb(client->get_character_object_id(), previous_location);
       break;
     }
     case UNREGISTER_CMD:
     {
-      Client* client = find_client_by_sockaddr(sock_addr);
       game_logic->unregister_character(client);
       remove_client(client->get_character_object_id());
       break;
@@ -187,28 +180,3 @@ void Server::remove_client(char object_id)
       break;
     }
 }
-
-Client* Server::find_client_by_sockaddr(sockaddr_in *sock_addr)
-{
-  for(std::list<Client*>::iterator client = clients->begin();
-      client != clients->end();
-      client++)
-  {
-    sockaddr_in *client_sock_addr = (*client)->get_sock_addr();
-    if (client_sock_addr->sin_port == sock_addr->sin_port &&
-        client_sock_addr->sin_addr.s_addr == sock_addr->sin_addr.s_addr)
-      return *client;
-  }
-  return NULL;
-}
-
-Client* Server::find_client_by_character_id(char character_object_id)
-{
-  for(std::list<Client*>::iterator client = clients->begin();
-      client != clients->end();
-      client++)
-    if ((*client)->get_character_object_id() == character_object_id)
-      return *client;
-  return NULL;
-}
-

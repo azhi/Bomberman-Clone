@@ -9,21 +9,23 @@
 #include <queue>
 
 struct ProcessJobParams;
+class Client;
 
 namespace Utils
 {
   class ListenThread
   {
     public:
-      ListenThread(int port, std::queue<ProcessJobParams> *process_queue,
+      ListenThread(Client* client, int port, std::queue<ProcessJobParams> *process_queue,
                    std::mutex *process_queue_mutex, std::condition_variable *cv_process_queue);
       ~ListenThread();
 
       void start();
 
-      static void worker_loop(ListenThread *params);
+      static void worker_loop(ListenThread *parent);
 
       int get_socket_fd(){ return socket_fd; };
+      Client *get_client(){ return client; };
 
       bool quit = false;
 
@@ -34,6 +36,7 @@ namespace Utils
     private:
       void init_socket(int port);
 
+      Client* client;
       std::thread *worker_thread;
       int socket_fd;
       char* buf;

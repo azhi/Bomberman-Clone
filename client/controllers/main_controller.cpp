@@ -146,7 +146,6 @@ long MainController::parse_str_ip(char* ip_str)
     int byte = atoi(buf);
     res += byte << (i * 8);
   }
-  D_VAR(res);
   return res;
 }
 
