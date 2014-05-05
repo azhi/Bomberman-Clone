@@ -93,7 +93,9 @@ void Server::process_single_msg(char* buf, size_t buf_len, sockaddr_in *sock_add
 
 void Server::send_full_state()
 {
-  send_to_all_clients(NULL, 0, true);
+  char* msg = game_logic->get_current_full_state();
+  send_to_all_clients(msg, strlen(msg) + 1, true);
+  delete[] msg;
 }
 
 void Server::send_create_character(char object_id, char x, char y, char last_move)

@@ -33,7 +33,10 @@ void Client::async_write(char *msg, int msg_len, bool force_full_state)
     process_first_send(msg, msg_len);
   else
     if (force_full_state)
-      send_full_state();
+    {
+      sents_without_sync = 0;
+      do_async_write(msg, msg_len);
+    }
     else
       if (sents_without_sync > MAX_SENTS_WITHOUT_SYNC)
         send_full_state();
