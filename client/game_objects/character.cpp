@@ -1,7 +1,9 @@
 #include <cmath>
+#include <iostream>
 
 #include "character.h"
 #include "../sdl/texture_cache.h"
+#include "../../shared/debug.h"
 
 namespace GameObjects
 {
@@ -47,9 +49,14 @@ namespace GameObjects
     this->last_move = last_move;
 
     if ((old_x != x || old_y != y) &&
-        (abs(field_x - x) < 2 && abs(field_y - y) < 2))
+        (abs(old_x - x) < 2 && abs(old_y - y) < 2))
     {
       start_animate_move();
+    }
+    else
+    {
+      screen_x = TILE_SIZE * field_x;
+      screen_y = TILE_SIZE * field_y;
     }
   }
 
